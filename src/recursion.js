@@ -120,7 +120,14 @@ var range = function(x, y) {
 // exponent(4,3); // 64
 // https://www.khanacademy.org/computing/computer-science/algorithms/recursive-algorithms/a/computing-powers-of-a-number
 var exponent = function(base, exp) {
-// NEED TO DO <---<---<---<---<---<
+  var result = 1;
+
+  if (exp === 0) return 1;
+
+  if (exp > 0) result *= base * exponent(base, exp - 1);
+  if (exp < 0) result /= base / exponent(base, exp + 1);
+
+  return result;
 };
 
 // 8. Determine if a number is a power of two.
@@ -128,6 +135,13 @@ var exponent = function(base, exp) {
 // powerOfTwo(16); // true
 // powerOfTwo(10); // false
 var powerOfTwo = function(n) {
+
+  if (n === 0) return false;
+  if (n === 1) return true;
+  if (n % 2 !== 0) return false;
+
+  return powerOfTwo(n / 2);
+
 };
 
 // 9. Write a function that reverses a string.
@@ -142,19 +156,9 @@ var reverse = function(string) {
 
 // 10. Write a function that determines if a string is a palindrome.
 var palindrome = function(string) {
-
-  string = string.toLowerCase().trim();
-
-  if (string.length === 1) {
-    return true;
-  }
-  string = string.split('');
-  let first = string.shift();
-  let last = string.pop();
-  if (first !== last) {
-    return false;
-  }
-  return palindrome(string.join(''));
+  if (string.length <= 1) return true;
+  palindrome(string.substring(1, string.length - 1));
+  return string.substring(0, 1).toUpperCase() === string.substring(string.length - 1).toUpperCase();
 };
 
 // 11. Write a function that returns the remainder of x divided by y without using the
@@ -207,7 +211,16 @@ var multiply = function(x, y) {
 // 13. Write a function that divides two numbers without using the / operator or
 // Math methods to arrive at an approximate quotient (ignore decimal endings).
 var divide = function(x, y) {
+  var z = 0;
 
+  if (y === 0) return NaN;
+
+  if ((x > 0 && (y > x || y < -x)) || (x < 0 && (y < x || y > -x))) return 0;
+
+  if ((x > 0 && y > 0) || (x < 0 && y < 0)) z += 1 + divide(x - y, y);
+  if ((x < 0 && y > 0) || (x > 0 && y < 0)) z += 1 + divide(x + y, y);
+
+  return z;
 };
 
 // 14. Find the greatest common divisor (gcd) of two positive numbers. The GCD of two
@@ -337,23 +350,38 @@ var rMap = function(array, callback) {
 // countKeysInObj(obj, 'r') // 1
 // countKeysInObj(obj, 'e') // 2
 var countKeysInObj = function(obj, key) {
-  // if (typeof obj !== 'object') {
-
-  // }
-  // return countKeysInObj()
-  // HARD <---<---<---<---<---<---<---<---<---<---<---<
+  var counter = 0;
+  for (let k in obj) {
+    if (k === key) counter++;
+    if (typeof obj[k] === 'object') counter += countKeysInObj(obj[k], key);
+  }
+  return counter;
 };
 
 // 23. Write a function that counts the number of times a value occurs in an object.
 // var obj = {'e':{'x':'y'},'t':{'r':{'e':'r'},'p':{'y':'r'}},'y':'e'};
 // countValuesInObj(obj, 'r') // 2
 // countValuesInObj(obj, 'e') // 1
-var countValuesInObj = function(obj, value) {
+var countValuesInObj = function(obj, value) { // <---<---<---<---<---<---< Good stuff here <---<---<---<---<---<---<
+  var counter = 0;
+  for (let key in obj) {
+    if (obj[key] === value) counter++;
+    if (obj[key] instanceof Object) counter += countValuesInObj(obj[key], value);
+  }
+  return counter;
 };
 
 // 24. Find all keys in an object (and nested objects) by a provided name and rename
 // them to a provided new name while preserving the value stored at that key.
 var replaceKeysInObj = function(obj, oldKey, newKey) {
+  for (let key in obj) {
+    if (key === oldKey) {
+      obj[newKey] = obj[key];
+      delete obj[key];
+    }
+    if (obj[key] instanceof Object) replaceKeysInObj(obj[key], oldKey, newKey);
+  }
+  return obj;
 };
 
 // 25. Get the first n Fibonacci numbers. In the Fibonacci sequence, each subsequent
@@ -422,8 +450,19 @@ var capitalizeFirst = function(array) {
 //   e: {e: {e: 2}, ee: 'car'}
 // };
 // nestedEvenSum(obj1); // 10
-var nestedEvenSum = function(obj) {
+var nestedEvenSum = function(obj) { // take a second look <---<---< this is how you do it properly
+  var sum = 0;
 
+  for (let key in obj) {
+    if (obj[key] % 2 === 0) {
+      sum += obj[key];
+    }
+    if (obj[key] instanceof Object) {
+      sum += nestedEvenSum(obj[key]);
+    }
+  }
+
+  return sum;
 };
 
 // 30. Flatten an array containing nested arrays.
@@ -485,12 +524,26 @@ var compress = function(list) {
 // itself.
 // augmentElements([[],[3],[7]], 5); // [[5],[3,5],[7,5]]
 var augmentElements = function(array, aug) {
+  if (array.length === 1) {
+    return [[...array[0], aug]];
+  }
+  let augArr = augmentElements(array.slice(1), aug);
+  augArr.unshift([...array[0], aug]);
+  return augArr;
 };
 
 // 34. Reduce a series of zeroes to a single 0.
 // minimizeZeroes([2,0,0,0,1,4]) // [2,0,1,4]
 // minimizeZeroes([2,0,0,0,1,0,0,4]) // [2,0,1,0,4]
 var minimizeZeroes = function(array) {
+  if (array.length === 1) {
+    return [array[0]];
+  }
+  let minArr = minimizeZeroes(array.slice(1));
+  if ((array[0] === 0 && minArr[0] !== 0) || array[0] !== 0) {
+    minArr.unshift(array[0]);
+  }
+  return minArr;
 };
 
 // 35. Alternate the numbers in an array between positive and negative regardless of
@@ -498,12 +551,55 @@ var minimizeZeroes = function(array) {
 // alternateSign([2,7,8,3,1,4]) // [2,-7,8,-3,1,-4]
 // alternateSign([-2,-7,8,3,-1,4]) // [2,-7,8,-3,1,-4]
 var alternateSign = function(array) {
+
+  if (array.length === 0) {
+    return [];
+  }
+  let altArr = alternateSign(array.slice(1));
+  altArr.unshift(array[0]);
+
+  for (let i = 0; i < altArr.length; i++) {
+    altArr[i] = Math.abs(altArr[i])
+    if (i % 2 !== 0) {
+      altArr[i] *= -1;
+    }
+  }
+
+  return altArr;
+
 };
 
 // 36. Given a string, return a string with digits converted to their word equivalent.
 // Assume all numbers are single digits (less than 10).
 // numToText("I have 5 dogs and 6 ponies"); // "I have five dogs and six ponies"
 var numToText = function(str) {
+
+  if (str.length === 0) return '';
+  var tempStr = numToText(str.substring(0, str.length-1));
+  var replace;
+  switch (str[str.length-1]) {
+    case '1': replace = 'one';
+      break;
+    case '2': replace = 'two';
+      break;
+    case '3': replace = 'three';
+      break;
+    case '4': replace = 'four';
+      break;
+    case '5': replace = 'five';
+      break;
+    case '6': replace = 'six';
+      break;
+    case '7': replace = 'seven';
+      break;
+    case '8': replace = 'eight';
+      break;
+    case '9': replace = 'nine';
+      break;
+    default: replace = str[str.length-1];
+      break;
+  }
+  return tempStr + replace;
 };
 
 
