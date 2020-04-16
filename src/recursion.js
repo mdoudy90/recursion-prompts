@@ -168,27 +168,14 @@ var palindrome = function(string) {
 // modulo(22,6) // 4
 var modulo = function(x, y) {
 
-  if (y === 1) { return 0; }
-  if (y === 0) { return NaN; }
-  if (y > 0 && y > x || y < 0 && y < x) { return x; }
+  if (y === 0) return NaN;
+  if (x === 0 || x > 0 && x < y || x < 0 && x > -y || x < 0 && y < 0 && x > y) return x;
 
-  if (y > 0 && x > 0) {
-    if (x - y <= y) {
-      return x - y;
-    }
-    return modulo(x - y, y);
-  } else
-  if (y < 0 || x < 0) {
-    if (x - y >= y) {
-      return x - y;
-    }
-    return modulo(x - y, y);
-  }
+  if (x > 0 || x < 0 && y < 0) var remainder = modulo(x - y, y);
+  if (x < 0 && y > 0 && x <= -y) var remainder = modulo(x + y, y);
+
+  return remainder;
 };
-
-let x = Number(-4);
-let y = 2;
-// console.log(modulo(x, y));
 
 // 12. Write a function that multiplies two numbers without using the * operator or
 // Math methods.
@@ -229,6 +216,13 @@ var divide = function(x, y) {
 // http://www.cse.wustl.edu/~kjg/cse131/Notes/Recursion/recursion.html
 // https://www.khanacademy.org/computing/computer-science/cryptography/modarithmetic/a/the-euclidean-algorithm
 var gcd = function(x, y) {
+
+  // euclidean-algorithm
+  if (x < 0 || y < 0) return null;
+  if (x === 0) return y;
+  if (y === 0) return x;
+
+  return gcd(y, x % y);
 };
 
 // 15. Write a function that compares each character of two strings and returns true if
